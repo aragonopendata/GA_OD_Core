@@ -1,0 +1,154 @@
+﻿{
+    "swagger": "2.0",
+    "info": {
+        "description": "API Documentation",
+        "version": "1.0.0",
+        "title": "GA_OD_CORE API",
+        "termsOfService": "http://opendata.aragon.es/terminos",
+        "contact": {
+            "name": "opendata@aragon.es"
+        },
+        "license": {
+            "name": "Creative Commons - Reconocimiento (CC-by 4.0)",
+            "url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+    },
+    "host": "opendata.aragon.es",
+    "basePath": "/GA_OD_Core",
+    "schemes": [
+        "http"
+    ],
+    "paths": {
+        "/views": {
+            "get": {
+                "summary": "Return all available Views.",
+                "description": "Return all available Views.",
+                "operationId": "views",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "user",
+                        "description": "Authenticated user in opendata portal",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "default": {
+                        "description": "unexpected error"
+                    }
+                }
+            }
+        },
+        "/show_columns": {
+            "get": {
+                "summary": "Return all columns of a table",
+                "description": "Returns information about name and type of the columns of a table.",
+                "operationId": "show_columns",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "view_id",
+                        "description": "ID of the View to query",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "default": {
+                        "description": "unexpected error"
+                    }
+                }
+            }
+        },
+        "/preview": {
+            "get": {
+                "summary": "Returns the result of a query to one of the available Views.",
+                "description": "Returns the result of a query to one of the available Views.",
+                "operationId": "preview",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "view_id",
+                        "description": "ID of the View to query",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "query",
+                        "name": "select_sql",
+                        "description": "String fields you want to retrieve. If are more than one, separate them by a coma (SQL Format)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "filter_sql",
+                        "description": "String with filters to add to the query (SQL Format)",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "default": {
+                        "description": "unexpected error"
+                    }
+                }
+            }
+        },
+        "/download": {
+            "get": {
+                "summary": "Downloads a file in XML, JSON or CSV format.",
+                "description": "Downloads a file in XML, JSON or CSV format with the result of a Query.",
+                "operationId": "download",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "view_id",
+                        "description": "ID of the View to query",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "query",
+                        "name": "select_sql",
+                        "description": "String fields you want to retrieve. If are more than one, separate them by a coma (SQL Format)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "filter_sql",
+                        "description": "String fields you want to retrieve. If are more than one, separate them by a coma (SQL Format)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "formato",
+                        "description": "Format of the file to download, must be XML, JSON or CSV",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "default": {
+                        "description": "unexpected error"
+                    }
+                }
+            }
+        }
+    }
+}

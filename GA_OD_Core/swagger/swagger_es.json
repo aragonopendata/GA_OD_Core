@@ -1,0 +1,154 @@
+﻿{
+    "swagger": "2.0",
+    "info": {
+        "description": "MANUAL DE USO",
+        "version": "1.0.0",
+        "title": "GA_OD_CORE API",
+        "termsOfService": "http://opendata.aragon.es/terminos",
+        "contact": {
+            "name": "opendata@aragon.es"
+        },
+        "license": {
+            "name": "Creative Commons - Reconocimiento (CC-by 4.0)",
+            "url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+    },
+    "host": "opendata.aragon.es",
+    "basePath": "/GA_OD_Core",
+    "schemes": [
+        "http"
+    ],
+    "paths": {
+        "/views": {
+            "get": {
+                "summary": "Visualiza todas las vistas disponibles en base de datos.",
+                "description": "Visualiza todas las vistas disponibles en base de datos.",
+                "operationId": "views",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "user",
+                        "description": "Usuario autenticado en el portal Opendata",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "éxito en  la operación"
+                    },
+                    "default": {
+                        "description": "error inesperado"
+                    }
+                }
+            }
+        },
+        "/show_columns": {
+            "get": {
+                "summary": "Visualiza  las columnas de una tabla",
+                "description": "Información sobre las columnas y sus tipos de datos en formato JSON identado",
+                "operationId": "show_columns",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "view_id",
+                        "description": "el Id de la Vista que queremos consultar",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "éxito en  la operación"
+                    },
+                    "default": {
+                        "description": "error inesperado"
+                    }
+                }
+            }
+        },
+        "/preview": {
+            "get": {
+                "summary": "Visualiza una consulta contra una de las vistas disponibles.",
+                "description": "Visualiza una consulta contra una de las vistas disponibles.",
+                "operationId": "preview",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "view_id",
+                        "description": "el Id de la Vista que queremos consultar",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "query",
+                        "name": "select_sql",
+                        "description": "Campos que queremos recuperar, separados por coma si son varios, formato SQL)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "filter_sql",
+                        "description": "Filtros que añadimos a la consulta formato consulta SQL",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "éxito en  la operación"
+                    },
+                    "default": {
+                        "description": "error inesperado"
+                    }
+                }
+            }
+        },
+        "/download": {
+            "get": {
+                "summary": "Descarga un fichero en formato XML, JSON o CSV.",
+                "description": "Descarga un ficherocon el resultado de una consulta contra una de las vistas disponibles.",
+                "operationId": "download",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "view_id",
+                        "description": "el Id de la Vista que queremos consultar",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "query",
+                        "name": "select_sql",
+                        "description": "Campos que queremos recuperar, separados por coma si son varios, formato SQL)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "filter_sql",
+                        "description": "Filtros que añadimos a la consulta formato consulta SQL",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "formato",
+                        "description": "Formato del fichero a descargar, debe ser XML, JSON o CSV",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "éxito en  la operación"
+                    },
+                    "default": {
+                        "description": "error inesperado"
+                    }
+                }
+            }
+        }
+    }
+}
