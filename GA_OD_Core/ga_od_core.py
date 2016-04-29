@@ -128,12 +128,12 @@ def show_columns(view_id):
             cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name   = '"+ nombre_vista+"'")
         elif tipo == 'sqlserver':
             cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name   = '"+ nombre_vista+"'")
-        elif tipo == 'mysql' and view_id == 104:
+        elif tipo == 'mysql' and view_id == '104':
             '''
             Hack for database name problem in list of our views.
             '''
             cursor.execute("SELECT COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'open_poligonos'")       
-        elif tipo == 'mysql' and not view_id == 104:
+        elif tipo == 'mysql' and not view_id == '104':
             cursor.execute("SELECT COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '"+ nombre_vista+"'")
         else:
             deb("UNKNOWN TYPE OF DATABSE !!!!!")
