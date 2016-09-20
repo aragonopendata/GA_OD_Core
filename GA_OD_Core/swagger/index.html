@@ -45,20 +45,9 @@
     addJavaScript("lang/en.js?n="+Math.floor((Math.random() * 100000) + 1));
   }
 
-  $(function () {
+	$(function () {
      window.cargar = cargar;
     function cargar() {
-/*      
-var url = window.location.search.match(/url=([^&]+)/);
-      if (url && url.length > 1) {
-        url = decodeURIComponent(url[1]);
-      } else {
-        url = "http://petstore.swagger.io/v2/swagger.json";
-      }
-*/
-  //var url ="http://preopendata.aragon.es/public/swagger.json";  
-  //var url = "http://preopendata.aragon.es/GA_OD_Core/ui/swagger.json";      
-
       window.swaggerUi = new SwaggerUi({
         url: url,
         dom_id: "swagger-ui-container",
@@ -109,7 +98,7 @@ var url = window.location.search.match(/url=([^&]+)/);
       */
 
       window.swaggerUi.load();
-  
+	
       function log() {
         if ('console' in window) {
           console.log.apply(console, arguments);
@@ -177,7 +166,7 @@ img { cursor: pointer; }
   <div class="swagger-ui-wrap">
 <a id="logo2" href="http://opendata.aragon.es">Aragón Open Data</a>    
 <a id="logo" href="http://swagger.io">swagger</a>
-  <div style="float:right;"> 
+	<div style="float:right;"> 
     <span class="flag" width="20"  onclick="insertParam('lang','en')">english</span>
     <span class="flag"> / </span>
     <span class="flag" width="20" onclick="insertParam('lang','es')">español</span>

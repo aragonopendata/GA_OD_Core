@@ -84,3 +84,18 @@ Para el funcionamiento del manual gráfico será necesario modificar los siguien
    #GA_OD_Core API
    Alias /GA_OD_Core/ui {nuestra_ruta}/GA_OD_Core/swagger
    ```
+#
+#
+#
+
+
+---
+#
+
+### v1.1:
+- Añadida funcionalidad para consultar Vistas de tipo google_analytics
+- Modificados los logs sean rotativos y con máximo de 5MB de tamaño de archivo
+- Con esta versión PRO escribira logs pero no dará información por pantalla
+- Condicionar según variable ENTORNO en fichero de configuración alguna conexión a base de datos para simplificar el despliegue en diferentes entornos
+- Traducción de algunos comentarios que quedaban en castellano
+- Limpieza de líneas comentadas en código

@@ -4,6 +4,7 @@ Created on Tue Jan 26
 
 @author: Miquel Quetglas
 @author: AMS
+@version: 1.1 (25/05/2016)
 """
 import conf as configuracion
 import os
@@ -49,7 +50,12 @@ def conexion(ubicacion):
         devolver = ConexionDB(MySQLdb.connect(host='xxx',port=xxx, user='xxx', passwd='xxx',db='xxx'),"mysql")
     elif ubicacion.lower() == 'app6':
         devolver = ConexionDB(cx_Oracle.connect(configuracion.AST_USR + "/" + configuracion.AST_PASS + "@" + configuracion.AST5_CONEXION_BD),"oracle")
-   
+    elif ubicacion.lower() == 'app7':
+        devolver = ConexionDB('','google_analytics')
+    elif ubicacion.lower() == 'app8':
+        devolver = ConexionDB(cx_Oracle.connect(configuracion.AST_USR + "/" + configuracion.AST_PASS + "@" + configuracion.AST_TURISMO),"oracle")
+    elif ubicacion.lower() == 'app9':
+        devolver = ConexionDB(cx_Oracle.connect(configuracion.CRA_USR + "/" + configuracion.CRA_PASS + "@" + configuracion.CRA_CONEXION),"oracle")  
     else:
         print 'There is no connection to: ' + ubicacion
         return None;

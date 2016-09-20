@@ -3,7 +3,8 @@
 Created on Tue Jan 26
 
 @author: Miquel Quetglas
-@author: AMS 
+@author: AMS
+@version: 1.1 (25/05/2016)
 """
 from flask import Flask
 import ga_od_core
@@ -18,7 +19,10 @@ from flask import make_response
 app = Flask(__name__)
 
 #For debbugging ONLY if True
-app.debug = configuracion.DEBUG_VAR
+if configuracion.ENTORNO == 'PRO':
+    app.debug = False
+else:
+    app.debug = True
 
 from werkzeug.debug import DebuggedApplication
 application = DebuggedApplication(app, evalex=configuracion.DEBUG_VAR)
