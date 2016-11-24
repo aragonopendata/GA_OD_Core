@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "API Documentation",
-        "version": "1.1",
+        "version": "1.2",
         "title": "GA_OD_CORE API",
         "termsOfService": "http://opendata.aragon.es/terminos",
         "contact": {
@@ -93,6 +93,22 @@
                         "description": "String with filters to add to the query (SQL Format)",
                         "required": false,
                         "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "_pageSize",
+                        "description": "Number of results in each page",
+                        "required": false,
+                        "type": "integer",
+                        "default": 100
+                    },
+                    {
+                        "in": "query",
+                        "name": "_page",
+                        "description": "Number of the page",
+                        "required": false,
+                        "type": "string",
+                        "default": 1
                     }
                 ],
                 "responses": {
@@ -137,7 +153,24 @@
                         "name": "formato",
                         "description": "Format of the file to download, must be XML, JSON or CSV",
                         "required": true,
-                        "type": "string"
+                        "type": "string",
+                        "enum": ["csv","json","xml"]
+                    },
+                    {
+                        "in": "query",
+                        "name": "_pageSize",
+                        "description": "Number of results in each page",
+                        "required": false,
+                        "type": "integer",
+                        "default": 100
+                    },
+                    {
+                        "in": "query",
+                        "name": "_page",
+                        "description": "Number of the page",
+                        "required": false,
+                        "type": "integer",
+                        "default": 1
                     }
                 ],
                 "responses": {

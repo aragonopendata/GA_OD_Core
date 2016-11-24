@@ -4,7 +4,7 @@ Created on Tue Jan 26
 
 @author: Miquel Quetglas
 @author: AMS
-@version: 1.1 (25/05/2016)
+@version: 1.2 (20/10/2016)
 """
 from flask import Flask
 import ga_od_core
@@ -72,14 +72,20 @@ def run_show_columns():
 def run_preview():
         
     view_id = request.args.get("view_id")
+    _pageSize = request.args.get("_pageSize")
+    _page = request.args.get("_page")
     if view_id is None:
         res = flask.Response("<b> view_id</b> is required.")
     elif view_id=="0" or not view_id.isdigit():
         res = flask.Response("<b> view_id</b> must be a number")
+    #elif _pageSize is None:
+        #res = flask.Response("<b> _pageSize</b> is required.")
+    #elif _page is None:
+        #res = flask.Response("<b> _page</b> is required.")
     else:      
         select_sql = request.args.get("select_sql")
         filter_sql = request.args.get("filter_sql")
-        res = make_response(ga_od_core.preview(view_id,select_sql,filter_sql))
+        res = make_response(ga_od_core.preview(view_id,select_sql,filter_sql,_page,_pageSize))
         res.headers['Access-Control-Allow-Headers'] = "*"        
         res.headers['Access-Control-Allow-Origin'] = "*"        
         res.headers['Access-Control-Allow-Methods'] = "GET"
@@ -92,7 +98,8 @@ def run_download():
     select_sql = request.args.get("select_sql")
     filter_sql = request.args.get("filter_sql")    
     formato = request.args.get("formato")
-    
+    _pageSize = request.args.get("_pageSize")
+    _page = request.args.get("_page")
     filename = str(view_id)
     if select_sql is not None:
         filename = filename + "_" + str(select_sql)
@@ -104,8 +111,12 @@ def run_download():
         res = flask.Response("<b> view_id</b> must be a number")
     elif formato is None or (formato.upper() not in ['CSV','JSON','XML']):
         res = flask.Response("<b> formato</b> must be CSV,JSON or XML")
+    #elif _pageSize is None:
+        #res = flask.Response("<b> _pageSize</b> is required.")
+    #elif _page is None:
+        #res = flask.Response("<b> _page</b> is required.")
     else:
-        resultado =  ga_od_core.download(view_id,select_sql,filter_sql,formato);
+        resultado =  ga_od_core.download(view_id,select_sql,filter_sql,formato,_page,_pageSize);
         res = make_response(resultado)
         res.headers['Access-Control-Allow-Headers'] = "*"        
         res.headers['Access-Control-Allow-Origin'] = "*"        

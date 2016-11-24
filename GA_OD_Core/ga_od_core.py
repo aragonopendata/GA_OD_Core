@@ -4,7 +4,7 @@ Created on Tue Jan 26
 
 @author: Miquel Quetglas
 @author: AMS
-@version: 1.1 (25/05/2016)
+@version: 1.2 (20/10/2016)
 """
 import conf as configuracion
 import sys
@@ -15,6 +15,7 @@ import sys
 import os
 os.environ["NLS_LANG"] = "SPANISH_SPAIN.AL32UTF8"
 import cgi
+import flask
 from flask import make_response
 from flask import jsonify
 import dicttoxml
@@ -23,7 +24,6 @@ import sustCaracter as sustCaracter
 import logging
 import logging.handlers
 from flask import request
-
 # Remove all handlers associated with the root logger object.
 for handler in logging.root.handlers[:]:
     logging.root.removeHandler(handler)
@@ -45,10 +45,7 @@ import urlparse
 #LOG_DEBUG = If is True will write logs with the deb() function
 LOG_DEBUG = configuracion.DEBUG_VAR
 
-
-#FORMAT='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-#Creation of rotative log (5MB max size) file with personalized format.
-FORMAT='%(asctime)s - %(levelname)s - %(message)s'
+FORMAT='[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s'
 my_logger=logging.getLogger("MyLogger")
 if LOG_DEBUG is True:
     my_logger.setLevel(logging.DEBUG)
@@ -63,6 +60,8 @@ fh.setFormatter(logging.Formatter(FORMAT))
 my_logger.addHandler(fh)
 dicttoxml.set_debug(False)
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 
 def deb(msg):
@@ -84,19 +83,22 @@ def views(user):
     """
     db = conexiones.conexion(configuracion.VIEWS_DB).cadena
     cursor = db.cursor()
-    if user == 'admin' or user is None:
-        sentencia = "SELECT id_vista, nombre FROM opendata.opendata_v_vistas order by id_vista"
-    else:
-        sentencia = "SELECT * FROM opendata.opendata_v_listadoVistas where usuario='" + user + "' order by id_vista"
-    cursor.execute(sentencia)
-    rows = cursor.fetchall()
-    resultado = []    
-
+    try:
+        if user == 'admin' or user is None:
+            sentencia = "SELECT id_vista, nombre FROM opendata.opendata_v_vistas order by id_vista"
+        else:
+            sentencia = "SELECT * FROM opendata.opendata_v_listadoVistas where usuario='" + user + "' order by id_vista"
+        cursor.execute(sentencia)
+        rows = cursor.fetchall()
+        resultado = []    
+    except Exception,e:
+        my_logger.error(e)
+        return json.dumps([" Something went wrong. please try again or contact your administrator"], ensure_ascii=False,sort_keys=True,indent=4)
     for row in rows:
         resultado.append(row)    
     
     cursor.close()
-    resultados = json.dumps(resultado,ensure_ascii=False,indent=4)
+    resultados = json.dumps(resultado,ensure_ascii=False,sort_keys=True,indent=4)
     return resultados  
 
 
@@ -110,6 +112,7 @@ def show_columns(view_id):
     """
     try:    
         #Connect to the database according to environment
+
         db = conexiones.conexion(configuracion.VIEWS_DB).cadena
         cursor = db.cursor()
         cursor.execute("SELECT SUBSTR(NOMBREREAL,INSTR(NOMBREREAL,'.',-1)+1),BASEDATOS from " + configuracion.OPEN_VIEWS + " WHERE ID_VISTA = '"+ str(view_id) + "'")
@@ -125,13 +128,16 @@ def show_columns(view_id):
             resultado.append(i)
     
         cursor.close()    
-        
         #Query to the View according to environment
-        db = conexiones.conexion(tipo_vista).cadena  
-        deb("--------------------")
-        deb("CADENA DE CONEXION: " + str(db))
-        deb("--------------------")
- 
+        try:
+            db = conexiones.conexion(tipo_vista).cadena  
+            deb("--------------------")
+            deb("CADENA DE CONEXION: " + str(db))
+            deb("--------------------")
+        except Exception,e:
+            my_logger.error("View " + str(view_id) + " does not exist")
+            return json.dumps(["View " + str(view_id) + " does not exist"], ensure_ascii=False,sort_keys=True,indent=4)
+
         #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment
         tipo = conexiones.conexion(tipo_vista).tipo
         deb("TIPO DE BASE DE DATOS: " + str(tipo))
@@ -139,29 +145,31 @@ def show_columns(view_id):
         #If the View is google_analytics type we store name and dataType to match views database
         if tipo == 'google_analytics':
             resultado = []
-            col = devuelve_rows(view_id,None,None)[1]
+            col = devuelve_rows(view_id,None,None,None,None)[1]
             for n in range(len(col)):
                 resultado.append(dict(columnName=str(col[n]['name']),dataType=str(col[n]['dataType'])))
         else:
             cursor = db.cursor()
-            
-            #Query according the type of Database
-            if tipo == 'oracle':
-                cursor.execute("select COLUMN_NAME,DATA_TYPE from ALL_TAB_COLUMNS where TABLE_NAME = UPPER('" + nombre_vista + "')")
-            elif tipo == 'postgre':
-                cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name   = '"+ nombre_vista+"'")
-            elif tipo == 'sqlserver':
-                cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name   = '"+ nombre_vista+"'")
-            elif tipo == 'mysql' and view_id == '104':
-                '''
-                Hack for database name problem in list of our views.
-                '''
-                cursor.execute("SELECT COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'open_poligonos'")       
-            elif tipo == 'mysql' and not view_id == '104':
-                cursor.execute("SELECT COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '"+ nombre_vista+"'")
-            else:
-                deb("UNKNOWN TYPE OF DATABSE !!!!!")
-            
+            try:
+                #Query according the type of Database
+                if tipo == 'oracle':
+                    cursor.execute("select COLUMN_NAME,DATA_TYPE from ALL_TAB_COLUMNS where TABLE_NAME = UPPER('" + nombre_vista + "')")
+                elif tipo == 'postgre':
+                    cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name   = '"+ nombre_vista+"'")
+                elif tipo == 'sqlserver':
+                    cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name   = '"+ nombre_vista+"'")
+                elif tipo == 'mysql' and view_id == '104':
+                    '''
+                    Hack for database name problem in list of our views.
+                    '''
+                    cursor.execute("SELECT COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'open_poligonos'")       
+                elif tipo == 'mysql' and not view_id == '104':
+                    cursor.execute("SELECT COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '"+ nombre_vista+"'")
+                else:
+                    deb("UNKNOWN TYPE OF DATABSE !!!!!")
+            except Exception,e:
+                my_logger.error(e)
+                return json.dumps([" Something went wrong. please try again or contact your administrator"], ensure_ascii=False,sort_keys=True,indent=4)
             rows = cursor.fetchall()
             resultado = []
             
@@ -174,10 +182,10 @@ def show_columns(view_id):
         resultados = json.dumps(resultado, ensure_ascii=False,sort_keys=True,indent=4) 
         return resultados
     except Exception,e:
-        my_logger.error(e) 
-
-    
-def devuelve_rows(view_id,select_sql,filter_sql):
+        my_logger.error(e)
+        return json.dumps([" Something went wrong. please try again or contact your administrator"], ensure_ascii=False,sort_keys=True,indent=4)
+         
+def devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize):
     """
     Devuelve Rows
     Args:    
@@ -192,6 +200,8 @@ def devuelve_rows(view_id,select_sql,filter_sql):
         deb("*********************view_id: " + str(view_id))
         deb("*********************select_sql: " + str(select_sql))
         deb("*********************filter_sql: " + str(filter_sql))
+        deb("*********************_page: " + str(_page))
+        deb("*********************_pageSize: " + str(_pageSize))
         
         #Query to the View according to environment
         db_v = conexiones.conexion(configuracion.VIEWS_DB).cadena
@@ -208,18 +218,28 @@ def devuelve_rows(view_id,select_sql,filter_sql):
             tipo_vista = i[1]
         cursor_v.close()
 
+        try:
+            deb("**tipo_vista: " + str(tipo_vista))
+            db = conexiones.conexion(tipo_vista).cadena
 
-        deb("**tipo_vista: " + str(tipo_vista))
-        db = conexiones.conexion(tipo_vista).cadena
-
-        deb("--------------------")
-        deb("CADENA DE CONEXION: " + str(db))
-        deb("--------------------")
-       
-        #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment    
-        tipo = conexiones.conexion(tipo_vista).tipo
-        deb("1-TIPO DE BASE DE DATOS: " + str(tipo))
+            deb("--------------------")
+            deb("CADENA DE CONEXION: " + str(db))
+            deb("--------------------")
+           
+            #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment    
+            tipo = conexiones.conexion(tipo_vista).tipo
+            deb("1-TIPO DE BASE DE DATOS: " + str(tipo))
+        except Exception,e:
+            my_logger.error("View " + str(view_id) + " does not exist")
+            return json.dumps(["View " + str(view_id) + " does not exist"], ensure_ascii=False,sort_keys=True,indent=4)
         
+        if _page == '' or _page is None:
+            _page = 1
+        if _pageSize == '' or _pageSize is None:
+            _pageSize = 999999
+
+        
+	
         if tipo == 'google_analytics':
             url = nombre_vista.replace("'","")
             parsed = urlparse.urlparse(url)
@@ -276,9 +296,17 @@ def devuelve_rows(view_id,select_sql,filter_sql):
                 fields = str(urlparse.parse_qs(parsed.query)['fields'][0])
             except Exception, e:
                 fields = None
+            
+            rowToStart = (int(_page) * int(_pageSize)) - int(_pageSize) + 1
+            rowToEnd = int(_pageSize)
+            rowToStart = str(rowToStart)
+            rowToEnd = str(rowToEnd)
 
+            if max_results is None or max_results == '' or max_results == '100000':
+                max_results  = rowToEnd
+            if start_index is None or start_index == '': 
+                start_index= rowToStart		
             response = google_analytics(profile,start_date,end_date,metrics,dimensions,filters,include_empty_rows,max_results,output,samplingLevel,segment,sort,start_index,fields)  
-
             columns = []
             resultados = json.loads(response)
 
@@ -286,38 +314,101 @@ def devuelve_rows(view_id,select_sql,filter_sql):
                 columns.append(resultados['columnHeaders'][n])
             resultados = resultados['rows']
         else:
+            #If NOT GOOGLE ANALYTICS VIEW
             cursor = db.cursor()
-            
+            #select_sql = ' * '
             #If GET[select_sql] is empty select all (*)
             if select_sql is None:
-                select_sql = '*'
-        
+                select_sql = ' * '
+            else:
+                columnasArr = []
+                
+                columnas = json.loads(show_columns(view_id))
+                for x in range (len(columnas)):
+                    if tipo == 'postgre' or tipo == 'sqlserver':
+                        deb("col " + str(x) + " es: " + str(columnas[x]['column_name']))
+                        columnasArr.append(columnas[x]['column_name'])
+                    else:
+                        deb("col " + str(x) + " es: " + str(columnas[x]['COLUMN_NAME']))
+                        columnasArr.append(columnas[x]['COLUMN_NAME'])
+                deb("columnasArr es: " + str(columnasArr))
+                select_sqlArr = select_sql.split(',')
+                deb("select_sqlArr es: " + str(select_sqlArr))
+                for word in select_sqlArr: 
+                    if word not in columnasArr and word != '*':
+                        return [],[str(word) + " is not a valid column"]
+
             #Hack for fix a wrong name in database       
             if nombre_vista == 'BD_WEBIAF':
                 nombre_vista = 'open_poligonos'
-            sentencia = "select " + str(select_sql) + " from " + str(nombre_vista)
-            
-            #If GET[filter_sql] is empty don't apply filters to the Query
-            if filter_sql is None:
-                filter_sql = "" 
+
+            rowToStart = str((int(_page) * int(_pageSize)) - int(_pageSize))
+            rowToEnd = str(_pageSize)
+
+            if tipo == 'oracle':
+                rowToEnd = str(int(_page) * int(_pageSize))
+                if filter_sql is None or filter_sql == '':
+                    sentencia = "select * from ( select a.*, ROWNUM rnum from  ( SELECT "+ str(select_sql) +" FROM " + str(nombre_vista) + " ) a  where ROWNUM <="+rowToEnd+" ) where rnum  > "+rowToStart+""
+                else:
+                    sentencia = "select * from ( select a.*, ROWNUM rnum from  ( SELECT "+ str(select_sql) +" FROM " + str(nombre_vista) + " WHERE " + str(filter_sql).replace("\"","\'") +") a where ROWNUM <= "+rowToEnd+" ) where rnum  >= "+rowToStart+""
+            elif tipo == 'sqlserver':
+                rowToEnd = str(int(_page) * int(_pageSize) -1)
+                filter_sql_added = ' rnum BETWEEN '+rowToStart+' AND ' +rowToEnd
+                if filter_sql is None or filter_sql == '':
+                    sentencia = "select "+ str(select_sql) +" from (SELECT *,ROW_NUMBER() OVER(ORDER BY (SELECT 0)) rnum FROM "+ str(nombre_vista) +") t WHERE " + str(filter_sql_added)
+                else:
+                    sentencia = "select "+ str(select_sql) +" from (SELECT *,ROW_NUMBER() OVER(ORDER BY (SELECT 0)) rnum FROM "+ str(nombre_vista) +") t WHERE " + str(filter_sql) + " AND " + str(filter_sql_added) 
             else:
-                sentencia = str(sentencia) +  " " + str(filter_sql).replace("\"","\'")
+                if tipo == 'postgre':
+                    filter_sql_added = ' LIMIT '+rowToEnd+' OFFSET ' +rowToStart
+                elif tipo == 'mysql':
+                    filter_sql_added = ' LIMIT '+rowToStart+','+rowToEnd
+                else:
+                    filter_sql_added = ''
+                if filter_sql is not None and filter_sql != '':
+                    filter_sql = " WHERE " + filter_sql
+                sentencia = "select " + str(select_sql) + " from " + str(nombre_vista)
+                sentencia = str(sentencia) +  " " + str(filter_sql).replace("\"","\'") + " " + filter_sql_added
             deb("sentencia: " + str(sentencia))
             
-            cursor.execute(sentencia)
-            rows = cursor.fetchall()
-            resultados = rows
+            if filter_sql is not None or filter_sql != '':
+                wordArr = ["count","lol","select","drop","union","password","admin","exec","declare","begin","BENCHMARK","encode"]
+                for word in wordArr:    
+                    if word in str(filter_sql).lower(): 
+                        return [],[str(word) + " is not a valid expresion"]
+
+            try:
+                cursor.execute(sentencia)
+            except Exception,e:
+                my_logger.error(e)
+                return [],["Something is wrong with the query, please check the params"]
+            #Hack to manage LOB items in ORACLE
+            if nombre_vista == 'OPENDATA.OPACARA_ITEM_BIS':
+                for row in cursor: 
+                    r = []
+                    for col in row: 
+                        try: 
+                            #deb("col.read- " + str(col.read())) 
+                            r.append(col.read())
+                        except: 
+                            #deb("col- " + str(col)) 
+                            r.append(col)
+                    rows.append(r)
+            else:
+                rows = cursor.fetchall()
             
-            #Hack to replace characters that cause errors         
-            if tipo == 'mysql' or tipo == 'sqlserver' or nombre_vista[0:6] == 'ARABUS':
+            #rows = cursor.fetchall()
+            resultados = rows
+            #Hack to replace characters that cause errors in sqlserverDB
+            if tipo == 'sqlserver':
                 resultados = []
                 r = []
                 for r in rows:
                     longitud = len(r)
                     arrayTupla = []
                     for i in range(longitud):
-                        try:                
-                            arrayTupla.append(sustCaracter.sustitucionCaracter(r[i]))
+                        try:
+                            arrayTupla.append(sustCaracter.sustitucionCaracterAlt(r[i]))
                         except Exception,e: 
                             arrayTupla.append(r[i])
                     resultados.append(arrayTupla)
@@ -325,9 +416,9 @@ def devuelve_rows(view_id,select_sql,filter_sql):
         return resultados,columns
     except Exception,e:
         my_logger.error(e)
-        
- 
-def preview(view_id,select_sql,filter_sql):
+        return [],[" Something went wrong. please try again or contact your administrator"]
+
+def preview(view_id,select_sql,filter_sql,_page,_pageSize):
     """
     Preview
     Args:
@@ -338,46 +429,37 @@ def preview(view_id,select_sql,filter_sql):
         resultados(Array): Array with records requested in the query. Allways is like SELECT {select_sql} from {nombre_vista} where {filter_sql}
     """
     try:
-        #Query to the View according to environment
-        db_v = conexiones.conexion(configuracion.VIEWS_DB).cadena
-        cursor_v = db_v.cursor()
-        cursor_v.execute("SELECT NOMBREREAL,BASEDATOS from " + configuracion.OPEN_VIEWS + " WHERE ID_VISTA = '"+ str(view_id) + "'")    
-        rows = cursor_v.fetchall()
-        
-        for i in rows:
-            deb("--------------------")  
-            deb("Seleccionamos vista: " + i[0])
-            nombre_vista = i[0]
-            tipo_vista = i[1]
-        cursor_v.close()    
-       
-        #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment    
-        tipo = conexiones.conexion(tipo_vista).tipo    
-        
+        try:
+            #Query to the View according to environment
+            deb("1--------------------")
+            db_v = conexiones.conexion(configuracion.VIEWS_DB).cadena
+            deb("2--------------------")
+            cursor_v = db_v.cursor()
+            cursor_v.execute("SELECT NOMBREREAL,BASEDATOS from " + configuracion.OPEN_VIEWS + " WHERE ID_VISTA = '"+ str(view_id) + "'")    
+            rows = cursor_v.fetchall()
+            
+            for i in rows:
+                deb("--------------------")  
+                deb("Seleccionamos vista: " + i[0])
+                nombre_vista = i[0]
+                tipo_vista = i[1]
+            cursor_v.close()    
+           
+            #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment    
+            tipo = conexiones.conexion(tipo_vista).tipo    
+        except Exception,e:
+            my_logger.error("View " + str(view_id) + " does not exist")
+            return json.dumps(["View " + str(view_id) + " does not exist"], ensure_ascii=False,sort_keys=True,indent=4)
+
         #Limit the amount of records we will return , because without are many fails get 500
         num_reg = configuracion.NUM_REGISTROS
         deb("-->  tipo_vista es: " + str(tipo))  
        
-        if filter_sql == None or filter_sql is None:
-            if tipo == 'oracle':
-                filter_sql = " WHERE ROWNUM< " + str(num_reg)
-            elif tipo == 'sqlserver':
-                filter_sql = ""
-            elif tipo == 'postgre' or tipo == 'mysql':
-                filter_sql = " LIMIT " + str(num_reg)
-        else:
-            if tipo == 'oracle':
-                filter_sql = " WHERE " + str(filter_sql) + " AND ROWNUM< " + str(num_reg)
-            elif tipo == 'sqlserver':
-                filter_sql = " WHERE " + str(filter_sql)
-            elif tipo == 'postgre' or tipo == 'mysql':
-                filter_sql = " WHERE " + str(filter_sql) + " LIMIT " + str(num_reg)          
-               
         deb("-->  filter_sql es: " + str(filter_sql))
        
         #Obtain registers and columns        
-        rows = devuelve_rows(view_id,select_sql,filter_sql)[0]
-        col = devuelve_rows(view_id,select_sql,filter_sql)[1]
+        rows = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[0]
+        col = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[1]
 
         if tipo == 'google_analytics':
             columns = []
@@ -396,9 +478,9 @@ def preview(view_id,select_sql,filter_sql):
         return d_string 
     except Exception,e: 
         my_logger.error(e)
-
+        return json.dumps([" Something went wrong. please try again or contact your administrator"], ensure_ascii=False,sort_keys=True,indent=4)
            
-def download(view_id,select_sql,filter_sql,formato):
+def download(view_id,select_sql,filter_sql,formato,_page,_pageSize):
     """
     Download
     Args:
@@ -409,39 +491,41 @@ def download(view_id,select_sql,filter_sql,formato):
     Returns:
         {nombre}.{formato} (File): A file with the format requested
     """ 
-    db_v = conexiones.conexion(configuracion.VIEWS_DB).cadena
-    cursor_v = db_v.cursor()
-    cursor_v.execute("SELECT NOMBREREAL,BASEDATOS from " + configuracion.OPEN_VIEWS + " WHERE ID_VISTA = '"+ str(view_id) + "'")    
-    rows = cursor_v.fetchall()
-    
-    for i in rows:
-        deb("--------------------")  
-        deb("Seleccionamos vista: " + i[0])
-        nombre_vista = i[0]
-        tipo_vista = i[1]
-    cursor_v.close()
+    try:
+        db_v = conexiones.conexion(configuracion.VIEWS_DB).cadena
+        cursor_v = db_v.cursor()
+        cursor_v.execute("SELECT NOMBREREAL,BASEDATOS from " + configuracion.OPEN_VIEWS + " WHERE ID_VISTA = '"+ str(view_id) + "'")    
+        rows = cursor_v.fetchall()
+        
+        for i in rows:
+            deb("--------------------")  
+            deb("Seleccionamos vista: " + i[0])
+            nombre_vista = i[0]
+            tipo_vista = i[1]
+        cursor_v.close()
 
-    #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment   
-    tipo = conexiones.conexion(tipo_vista).tipo
+        #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment   
+        tipo = conexiones.conexion(tipo_vista).tipo
+    except Exception,e:
+            my_logger.error("View " + str(view_id) + " does not exist")
+            return json.dumps(["View " + str(view_id) + " does not exist"], ensure_ascii=False,sort_keys=True,indent=4)
 
-    if filter_sql != None or filter_sql is not None:
-        filter_sql = " WHERE " + str(filter_sql)
     #Differentiate format
     if formato.upper() == "JSON":
         resultado = []    
-        resultado = create_JSON_array(view_id,select_sql,filter_sql,tipo)  
+        resultado = create_JSON_array(view_id,select_sql,filter_sql,tipo,_page,_pageSize)  
     elif formato.upper() == 'XML':
-        obj = create_XML_array(view_id,select_sql,filter_sql,tipo)
+        obj = create_XML_array(view_id,select_sql,filter_sql,tipo,_page,_pageSize)
         resultado = dicttoxml.dicttoxml(obj,attr_type=False)
     elif formato.upper() == 'CSV':
         resultado = ""
-        resultado = create_CSV(view_id,select_sql,filter_sql,tipo)      
+        resultado = create_CSV(view_id,select_sql,filter_sql,tipo,_page,_pageSize)      
     else:
         resultado = "Must enter the parameter <b>format</b>. (XML, JSON o CSV)"
     return resultado    
 
 
-def create_JSON_array(view_id,select_sql,filter_sql,tipo):
+def create_JSON_array(view_id,select_sql,filter_sql,tipo,_page,_pageSize):
     """
     Create JSON Array
     Args:
@@ -452,14 +536,14 @@ def create_JSON_array(view_id,select_sql,filter_sql,tipo):
         reultados(Array):Array in JSON format
     """            
     resultado = []    
-    rows = devuelve_rows(view_id,select_sql,filter_sql)[0]
+    rows = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[0]
     if tipo == 'google_analytics':
-        col = devuelve_rows(view_id,select_sql,filter_sql)[1]
+        col = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[1]
         columns = []
         for n in range(len(col)):
             columns.append(col[n]['name'])
     else:
-        columns = devuelve_rows(view_id,select_sql,filter_sql)[1]
+        columns = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[1]
     resultado.append(columns)
     for row in rows:
         resultado.append(row)
@@ -467,7 +551,7 @@ def create_JSON_array(view_id,select_sql,filter_sql,tipo):
     return d_string
 
 
-def create_XML_array(view_id,select_sql,filter_sql,tipo):
+def create_XML_array(view_id,select_sql,filter_sql,tipo,_page,_pageSize):
     """
     Create XML Array
     Args:
@@ -478,20 +562,20 @@ def create_XML_array(view_id,select_sql,filter_sql,tipo):
         reultados(Dictionary): Array in dictionary format.
     """            
     resultado = []    
-    rows = devuelve_rows(view_id,select_sql,filter_sql)[0]
+    rows = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[0]
     if tipo == 'google_analytics':
-        col = devuelve_rows(view_id,select_sql,filter_sql)[1]
+        col = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[1]
         columns = []
         for n in range(len(col)):
             columns.append(col[n]['name'])
     else:
-        columns = devuelve_rows(view_id,select_sql,filter_sql)[1]
+        columns = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[1]
     for row in rows:
         resultado.append(dict(zip(columns, row)))
     return resultado
 
 
-def create_CSV(view_id,select_sql,filter_sql,tipo):
+def create_CSV(view_id,select_sql,filter_sql,tipo,_page,_pageSize):
     """
     Create CSV
     Args:
@@ -501,27 +585,32 @@ def create_CSV(view_id,select_sql,filter_sql,tipo):
     Returns:
         reultados(String): String in csv format.
     """    
-    rows = devuelve_rows(view_id,select_sql,filter_sql)[0]
+    rows = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[0]
     if tipo == 'google_analytics':
-        col = devuelve_rows(view_id,select_sql,filter_sql)[1]
+        col = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[1]
         columns = []
         for n in range(len(col)):
             columns.append(col[n]['name'])
     else:
-        columns = devuelve_rows(view_id,select_sql,filter_sql)[1]
+        columns = devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize)[1]
 
     #Creating csv with ';' as separator
     out = ""
     for row in columns:
-        out = out + row
-        out = out + ";"
-    out = out + '\n'
+        out += '\"' + row + '\";'
+        #out = out + '\";'
+    out += '\n'
     for row in rows:
         for column in row:
-            out = out + str(column)
-            out = out + ";"
-        out = out + '\n'
-    return out.encode('utf-8')
+            out += '\"' + str(column) + '\";'
+            #out += '\";'
+        out += '\n'
+    #Different way in sqlserver
+    if view_id=='103':
+        deb('VISTA 103')
+        return out
+    else:
+        return out.encode('utf-8')
 
 
 def get_view_id(resource_id):

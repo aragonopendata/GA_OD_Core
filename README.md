@@ -99,3 +99,13 @@ Para el funcionamiento del manual gráfico será necesario modificar los siguien
 - Condicionar según variable ENTORNO en fichero de configuración alguna conexión a base de datos para simplificar el despliegue en diferentes entornos
 - Traducción de algunos comentarios que quedaban en castellano
 - Limpieza de líneas comentadas en código
+
+---
+#
+
+### v1.2:
+- Añadidos 2 campos, _page y _pageSize para paginar las consultas en los métodos 'preview' y 'download', _pageSize limita el número de registros que devuelve la consulta y _page el número de página devuelto.
+- Añadidos control de errores para evitar errores 500.
+- Mejora de algunos logs para dar mas información en caso de que se produzca un error.
+- Mejora en la creación de ficheros CSV.
+- Corregidos problemas causados por la codificación de caráteres en alguna tabla.

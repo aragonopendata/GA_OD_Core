@@ -4,7 +4,7 @@ Created on Tue Jan 26
 
 @author: Miquel Quetglas
 @author: AMS
-@version: 1.1 (25/05/2016)
+@version: 1.2 (20/10/2016)
 """
 
 #Enviroment.
