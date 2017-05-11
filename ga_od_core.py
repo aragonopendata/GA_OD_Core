@@ -135,7 +135,7 @@ def show_columns(view_id):
             deb("CADENA DE CONEXION: " + str(db))
             deb("--------------------")
         except Exception,e:
-            my_logger.error("View " + str(view_id) + " does not exist")
+            my_logger.error("View " + str(view_id) + " does not exist - e: " + str(e))
             return json.dumps(["View " + str(view_id) + " does not exist"], ensure_ascii=False,sort_keys=True,indent=4)
 
         #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment
@@ -230,7 +230,7 @@ def devuelve_rows(view_id,select_sql,filter_sql,_page,_pageSize):
             tipo = conexiones.conexion(tipo_vista).tipo
             deb("1-TIPO DE BASE DE DATOS: " + str(tipo))
         except Exception,e:
-            my_logger.error("View " + str(view_id) + " does not exist")
+            my_logger.error("View " + str(view_id) + " does not exist - e: " + str(e))
             return json.dumps(["View " + str(view_id) + " does not exist"], ensure_ascii=False,sort_keys=True,indent=4)
         
         if _page == '' or _page is None:
@@ -448,7 +448,7 @@ def preview(view_id,select_sql,filter_sql,_page,_pageSize):
             #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment    
             tipo = conexiones.conexion(tipo_vista).tipo    
         except Exception,e:
-            my_logger.error("View " + str(view_id) + " does not exist")
+            my_logger.error("View " + str(view_id) + " does not exist" + str(e))
             return json.dumps(["View " + str(view_id) + " does not exist"], ensure_ascii=False,sort_keys=True,indent=4)
 
         #Limit the amount of records we will return , because without are many fails get 500
@@ -507,7 +507,7 @@ def download(view_id,select_sql,filter_sql,formato,_page,_pageSize):
         #Obtain the type of Database (oracle, mysql, postge o sqlserver) according to environment   
         tipo = conexiones.conexion(tipo_vista).tipo
     except Exception,e:
-            my_logger.error("View " + str(view_id) + " does not exist")
+            my_logger.error("View " + str(view_id) + " does not exist - e:" + str(e))
             return json.dumps(["View " + str(view_id) + " does not exist"], ensure_ascii=False,sort_keys=True,indent=4)
 
     #Differentiate format
