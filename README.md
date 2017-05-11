@@ -109,3 +109,10 @@ Para el funcionamiento del manual gráfico será necesario modificar los siguien
 - Mejora de algunos logs para dar mas información en caso de que se produzca un error.
 - Mejora en la creación de ficheros CSV.
 - Corregidos problemas causados por la codificación de caráteres en alguna tabla.
+
+---
+#
+
+### v1.2.1:
+- Añadida aplicación independiente "GA_OD_Core Validator" para validar las URLs de la API
+- Añadidos logs relacionados con conexión a Base de datos.
