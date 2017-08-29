@@ -107,7 +107,7 @@
                         "name": "_page",
                         "description": "Number of the page",
                         "required": false,
-                        "type": "string",
+                        "type": "integer",
                         "default": 1
                     }
                 ],
