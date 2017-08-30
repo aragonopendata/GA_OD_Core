@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Project files and folders reorganization.
 - Code modularization.
 
+## [1.2.2] - 2017-08-30
+
+### Changed
+- Data type page modified on swagger.json file.
+
 ## [1.2.1] - 2017-05-11
 
 ### Added
