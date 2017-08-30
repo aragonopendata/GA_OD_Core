@@ -116,3 +116,9 @@ Para el funcionamiento del manual gráfico será necesario modificar los siguien
 ### v1.2.1:
 - Añadida aplicación independiente "GA_OD_Core Validator" para validar las URLs de la API
 - Añadidos logs relacionados con conexión a Base de datos.
+
+---
+#
+
+### v1.2.2:
+- Tipo de dato de _page corregido.
