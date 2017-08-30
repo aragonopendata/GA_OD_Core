@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 [Unreleased]: https://github.com/aragonopendata/GA_OD_Core/compare/master...develop
 
+[1.2.2]: https://github.com/aragonopendata/GA_OD_Core/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/aragonopendata/GA_OD_Core/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/aragonopendata/GA_OD_Core/compare/v1.1.1...v1.2.0
 [1.1.0]: https://github.com/aragonopendata/GA_OD_Core/releases/tag/v1.1.0
