@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   description: API Documentation
   version: "1.2"
-  title: GA_OD_CORE_API
+  title: Aragon Open Data Core API
   termsOfService: http://opendata.aragon.es/terminos
   contact:
     email: opendata@aragon.es
@@ -16,30 +16,11 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
-  /views:
+  /download:
     get:
-      summary: Return all available Views.
-      description: Return all available Views.
-      operationId: views
-      parameters:
-        - name: user
-          in: query
-          description: Authenticated user in opendata portal
-          required: false
-          schema:
-            type: string
-      responses:
-        "200":
-          description: successful operation
-        "400":
-          description: Invalid status value
-        default:
-          description: unexpected error
-  /show_columns:
-    get:
-      summary: Return all columns of a table
-      description: Returns information about name and type of the columns of a table.
-      operationId: show_columns
+      summary: Downloads a file in XML, JSON or CSV format.
+      description: Downloads a file in XML, JSON or CSV format with the result of a Query.
+      operationId: download
       parameters:
         - name: view_id
           in: query
@@ -47,6 +28,43 @@ paths:
           required: true
           schema:
             type: integer
+        - name: select_sql
+          in: query
+          description: String fields you want to retrieve. If are more than one, separate
+            them by a coma (SQL Format)
+          required: false
+          schema:
+            type: string
+        - name: filter_sql
+          in: query
+          description: String with filters to add to the query (SQL Format)
+          required: false
+          schema:
+            type: string
+        - name: formato
+          in: query
+          description: Format of the file to download, must be XML, JSON or CSV
+          required: true
+          schema:
+            type: string
+            enum:
+              - csv
+              - json
+              - xml
+        - name: _pageSize
+          in: query
+          description: Number of results in each page
+          required: false
+          schema:
+            type: integer
+            default: 100
+        - name: _page
+          in: query
+          description: Number of the page
+          required: false
+          schema:
+            type: integer
+            default: 1
       responses:
         "200":
           description: successful operation
@@ -100,11 +118,11 @@ paths:
           description: Invalid status value
         default:
           description: unexpected error
-  /download:
+  /show_columns:
     get:
-      summary: Downloads a file in XML, JSON or CSV format.
-      description: Downloads a file in XML, JSON or CSV format with the result of a Query.
-      operationId: download
+      summary: Return all columns of a table
+      description: Returns information about name and type of the columns of a table.
+      operationId: show_columns
       parameters:
         - name: view_id
           in: query
@@ -112,43 +130,25 @@ paths:
           required: true
           schema:
             type: integer
-        - name: select_sql
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Invalid status value
+        default:
+          description: unexpected error
+  /views:
+    get:
+      summary: Return all available Views.
+      description: Return all available Views.
+      operationId: views
+      parameters:
+        - name: user
           in: query
-          description: String fields you want to retrieve. If are more than one, separate
-            them by a coma (SQL Format)
+          description: Authenticated user in opendata portal
           required: false
           schema:
             type: string
-        - name: filter_sql
-          in: query
-          description: String with filters to add to the query (SQL Format)
-          required: false
-          schema:
-            type: string
-        - name: formato
-          in: query
-          description: Format of the file to download, must be XML, JSON or CSV
-          required: true
-          schema:
-            type: string
-            enum:
-              - csv
-              - json
-              - xml
-        - name: _pageSize
-          in: query
-          description: Number of results in each page
-          required: false
-          schema:
-            type: integer
-            default: 100
-        - name: _page
-          in: query
-          description: Number of the page
-          required: false
-          schema:
-            type: integer
-            default: 1
       responses:
         "200":
           description: successful operation
