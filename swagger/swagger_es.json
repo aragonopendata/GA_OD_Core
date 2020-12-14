@@ -16,7 +16,7 @@
     "host": "opendata.aragon.es",
     "basePath": "/GA_OD_Core",
     "schemes": [
-        "http"
+        "https"
     ],
     "paths": {
         "/views": {
@@ -170,6 +170,13 @@
                         "required": false,
                         "type": "integer",
                         "default": 1
+                    },
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "description": "Nombre del archivo",
+                        "required": false,
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -178,6 +185,30 @@
                     },
                     "default": {
                         "description": "error inesperado"
+                    }
+                }
+            }
+        },
+        "/pool/api-consulta/topics": {
+            "get": {
+                "summary": "Return all available topics.",
+                "description": "Return all available topics.",
+                "operationId": "topics",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "user",
+                        "description": "Authenticated user in opendata portal",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "default": {
+                        "description": "unexpected error"
                     }
                 }
             }

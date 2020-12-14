@@ -30,18 +30,18 @@
  <!-- <script src='lang/es.js' type='text/javascript'></script> -->
 
   <script type="text/javascript">
-  var url = "http://opendata.aragon.es/GA_OD_Core/ui/swagger.json"; 
+  var url = "https://opendata.aragon.es/GA_OD_Core/ui/swagger.json";
   var l = getParameterByName('lang');
 
   if(l=='es'){
-    url = "http://opendata.aragon.es/GA_OD_Core/ui/swagger_es.json"; 
+    url = "https://opendata.aragon.es/GA_OD_Core/ui/swagger_es.json";
     addJavaScript("lang/es.js?n="+Math.floor((Math.random() * 100000) + 1));
   }
   else if(l=='en'){
-    url = "http://opendata.aragon.es/GA_OD_Core/ui/swagger.json";
+    url = "https://opendata.aragon.es/GA_OD_Core/ui/swagger.json";
     addJavaScript("lang/en.js?n="+Math.floor((Math.random() * 100000) + 1));
   }else{
-     url="http://opendata.aragon.es/GA_OD_Core/ui/swagger.json";
+     url="https://opendata.aragon.es/GA_OD_Core/ui/swagger.json";
     addJavaScript("lang/en.js?n="+Math.floor((Math.random() * 100000) + 1));
   }
 
